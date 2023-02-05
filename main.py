@@ -1,42 +1,56 @@
 """Executes and manage the game"""
 
 from game import TicTacToe
+from minimax_tree import MinimaxTree
 
 
-def ask_move(game: TicTacToe) -> None:
+def ask_to_human_move(game: TicTacToe) -> None:
     """
-    Ask the position of the next move
+    Ask the position of the next move, throws an error everytime that don't make the move
     """
-    turn = "O" if game.turn == 1 else "X"
-    print(f"Turn of {turn}")
-
     print("Col: ", end="")
     col = int(input())
 
     print("Row: ", end="")
     row = int(input())
 
-    if game.moves == 9:
-        raise OverflowError("Its a draw")
-
     if col < 1 or row < 1 or 3 < col or 3 < row:
         msg = "The given values are invalid. Valid values are between 1 and 3 (included)"
         raise IndexError(msg)
 
     game.choice_cell(col - 1, row - 1)
-    print(f"\n{game}")
 
 
 def main() -> None:
     """
     Runs the all the game until its finished
     """
+    human_turn = True
     game = TicTacToe()
+    tree = MinimaxTree(not human_turn)
+    tree.init_nodes_creation(game)
+
     print(game)
 
-    while not game.is_winner():
+    while not game.is_winner() and game.moves < 9:
+        turn = "O" if game.turn == 1 else "X"
+        print(f"Turn of {turn}")
+
         try:
-            ask_move(game)
+            if human_turn:
+                ask_to_human_move(game)
+                tree.update_game(game)
+                human_turn = False
+
+            else:
+                tree.make_move_in_game(game)
+                tree.update_game(game)
+
+                print("\nThe ai move was")
+                print(f"col: {tree.recent_moves[0] + 1}")
+                print(f"row: {tree.recent_moves[1] + 1}")
+
+                human_turn = True
 
         except (IndexError, ValueError) as error:
             print(error)
@@ -45,8 +59,19 @@ def main() -> None:
             print(error)
             break
 
-    print("Winner")
+        finally:
+            print(f"\n{game}")
+
+    if game.is_winner():
+        print(f"The winner is... the {'human' if not human_turn else 'ai'}")
+
+    else:
+        print("Its a draw")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        while True:
+            main()
+    except KeyboardInterrupt:
+        pass

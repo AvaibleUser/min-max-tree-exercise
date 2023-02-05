@@ -8,17 +8,14 @@ class TicTacToe:
     Class that represents the game
     """
 
-    def __init__(self):
-        self.turn = 1
-        self.moves = 0
-        self._board = [0 for _ in range(9)]
+    def __init__(self, turn=1, moves=0, _board=[0 for _ in range(9)]):
+        self.turn = turn
+        self.moves = moves
+        self._board = _board[:]
 
     @property
     def board(self):
-        """
-        Returns a dead copy of the board
-        """
-        return self._board[:]
+        return self._board
 
     def choice_cell(self, col: int, row: int) -> None:
         """
@@ -81,4 +78,20 @@ class TicTacToe:
         return _board
 
     def __repr__(self) -> str:
-        return str(self)
+        string = "["
+        for num in self._board:
+            value = " "
+
+            if num == -1:
+                value = "X"
+
+            elif num == 1:
+                value = "O"
+
+            string += f"{value},"
+
+        string += "]"
+        return string
+
+    def __eq__(self, __o: object) -> bool:
+        return isinstance(__o, TicTacToe) and self._board == __o._board
