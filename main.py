@@ -27,8 +27,7 @@ def main() -> None:
     """
     human_turn = True
     game = TicTacToe()
-    tree = MinimaxTree(not human_turn)
-    tree.init_nodes_creation(game)
+    tree = MinimaxTree(game, not human_turn)
 
     print(game)
 
@@ -47,8 +46,8 @@ def main() -> None:
                 tree.update_game(game)
 
                 print("\nThe ai move was")
-                print(f"col: {tree.recent_moves[0] + 1}")
-                print(f"row: {tree.recent_moves[1] + 1}")
+                print(f"col: {tree.root.moves[0] + 1}")
+                print(f"row: {tree.root.moves[1] + 1}")
 
                 human_turn = True
 

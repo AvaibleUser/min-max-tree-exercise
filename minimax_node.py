@@ -1,7 +1,11 @@
+import threading
 from game import TicTacToe
 
 
 class MinimaxNode:
+    first_human_moves = {}
+    first_bot_moves = {}
+
     def __init__(self, game: TicTacToe, last_turn_for_bot: bool):
         self.game = game
         self.children = []
@@ -10,7 +14,24 @@ class MinimaxNode:
         self.next_turn = not last_turn_for_bot
         self._possible_moves = self._get_possible_moves()
 
-        self.make_all_possible_moves()
+        self._set_values_if_exists()
+
+    def _set_values_if_exists(self):
+        if self.game.moves == 0:
+            if self.next_turn and MinimaxNode.first_human_moves:
+                self.moves = MinimaxNode.first_human_moves["moves"]
+                self.children = MinimaxNode.first_human_moves["children"]
+
+            elif not self.next_turn and MinimaxNode.first_bot_moves:
+                self.moves = MinimaxNode.first_bot_moves["moves"]
+                self.children = MinimaxNode.first_bot_moves["children"]
+
+            else:
+                self._make_all_possible_moves_threading()
+
+        else:
+            for col, row in self._possible_moves:
+                self.make_next_move(col, row)
 
     def _get_possible_moves(self) -> tuple[tuple[int, int], ...]:
         if self.game.moves == 0:
@@ -52,16 +73,30 @@ class MinimaxNode:
             self.moves = moves
             self.score = child_score
 
-    def make_all_possible_moves(self):
-        #total_moves = 0
+    def make_next_move(self, col: int, row: int):
+        child_score = self.get_next_move_score(col, row)
+        self.set_minmax_score((col, row), child_score)
+
+    def _make_all_possible_moves_threading(self):
+        threads = []
+
         for col, row in self._possible_moves:
-            child_score = self.get_next_move_score(col, row)
+            threads.append(threading.Thread(
+                target=self.make_next_move, args=(col, row)))
 
-            self.set_minmax_score((col, row), child_score)
-            #self.score += child_score
-            #total_moves += 1
+        for thread in threads:
+            thread.start()
 
-        #self.score /= total_moves
+        for thread in threads:
+            thread.join()
+
+        if self.next_turn:
+            MinimaxNode.first_human_moves = {
+                "moves": self.moves, "children": self.children}
+
+        else:
+            self.first_bot_moves = {
+                "moves": self.moves, "children": self.children}
 
     def __repr__(self) -> str:
         return str((self.score, *self.moves))
