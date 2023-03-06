@@ -1,7 +1,7 @@
 """Executes and manage the game"""
 
-from game import TicTacToe
-from minimax_tree import MinimaxTree
+from . import TicTacToe
+from . import MinimaxTree
 
 
 def ask_to_human_move(game: TicTacToe) -> None:
